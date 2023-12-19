@@ -5,6 +5,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const getStandings = require('./handlers/standings');
+const getTeams = require('./handlers/teams');
 
 const PORT = process.env.PORT || 3001;
 
@@ -23,8 +24,8 @@ app.use(cors());
 app.use(express.json());
 
 // routes
-// app.get('/highlights', getHighlights);
 app.get('/standings/:leagueCode', getStandings);
+app.get('/teams', getTeams);
 
 app.use((error, request, response, next) => {
   console.error(error);
