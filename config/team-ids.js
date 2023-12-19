@@ -31,9 +31,25 @@ const teamIdsByLeague = {
   WC: [
     758,759,760,762,763,764,765,766,769,770,771,772,773,779,780,781,782,788,791,793,794,799,801,802,804,805,815,828,833,840,8030,8601
   ],
+  All: [],
 };
 
 // Accessing team IDs for the Premier League (PL)
 // const premierLeagueTeamIds = teamIdsByLeague['PL'];
 // console.log('Team IDs for PL:', premierLeagueTeamIds);
+
+// Use a Set to store unique team IDs
+const uniqueTeamIdsSet = new Set();
+
+// Iterate through each league's team IDs and add them to the set
+Object.values(teamIdsByLeague).forEach((teamIds) => {
+  teamIds.forEach((teamId) => {
+    uniqueTeamIdsSet.add(teamId);
+  });
+});
+
+// Convert the Set back to an array and assign it to the "All" property
+teamIdsByLeague.All = [...uniqueTeamIdsSet];
+
+// console.log(teamIdsByLeague.All);
 module.exports = teamIdsByLeague;

@@ -1,10 +1,7 @@
 const axios = require('axios');
 const leagues = require('../config/league-codes');
-const teamIdsByLeague = require('../config/team-ids');
-// const LeagueStandingsModel = require('../models/leagueStandings');
 
 module.exports = async function getTeams(request, response) {
-  const teamId = request.params.teamId;
   const apiUrl = 'https://api.football-data.org/v4/teams';
   const apiKey = process.env.FB_API_KEY;
 
@@ -28,18 +25,58 @@ module.exports = async function getTeams(request, response) {
       }
     }
 
+    // Construct the URL based on whether a teamId is provided or not
+    const url = request.params.teamId ? `${apiUrl}/${request.params.teamId}?${filters.join('&')}` : `${apiUrl}?${filters.join('&')}`;
+    
     // Log the constructed URL
-    const urlWithFilters = `${apiUrl}/${teamId}?${filters.join('&')}`;
-    console.log('Request URL:', urlWithFilters);
+    console.log('Request URL:', url);
 
-    const teamsResponse = await axios.get(urlWithFilters, { headers });
-    const standingsData = teamsResponse.data;
+    const teamsResponse = await axios.get(url, { headers });
+    const teamData = teamsResponse.data;
 
-    console.log('API Response:', standingsData);
+    // If a teamId is provided, create an instance of TeamInfo using the provided teamData and teamId
+    const teamInfo = request.params.teamId ? new TeamInfo(teamData, request.params.teamId) : teamData;
 
-    response.status(200).json(standingsData);
+    // Send the structured team information in the response
+    response.status(200).json(teamInfo);
   } catch (error) {
     console.error('Error:', error.message);
     response.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
+// class
+class TeamInfo {
+  constructor(teamData) {
+    try {
+      this.id = teamData.id;
+      this.name = teamData.name;
+      this.crest = teamData.crest;
+      this.tla = teamData.tla;
+      this.founded = teamData.founded;
+      this.address = teamData.address;
+      this.runningCompetitions = teamData.runningCompetitions.map(
+        (competition) => {
+          return {
+            id: competition.id,
+            name: competition.name,
+            code: competition.code,
+            type: competition.type,
+            emblem: competition.emblem,
+          };
+        }
+      );
+      this.coachName = `${teamData.coach.firstName} ${teamData.coach.lastName}`;
+      this.squad = teamData.squad.map((player) => {
+        return {
+          id: player.id,
+          name: player.name,
+          position: player.position,
+          nationality: player.nationality,
+        };
+      });
+    } catch (error) {
+      console.error('Error in TeamInfo constructor: ', error.message);
+    }
+  }
+}

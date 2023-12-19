@@ -25,7 +25,8 @@ app.use(express.json());
 
 // routes
 app.get('/standings/:leagueCode', getStandings);
-app.get('/teams/:teamId', getTeams);
+app.get('/teams/:teamId?', getTeams);
+
 
 app.use((error, request, response, next) => {
   console.error(error);
