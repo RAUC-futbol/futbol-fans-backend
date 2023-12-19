@@ -3,7 +3,8 @@ const LeagueStandingsModel = require('../models/leagueStandings');
 
 module.exports = async function getStandings(request, response) {
   const leagueCode = request.params.leagueCode.toUpperCase();
-  const apiUrl = `http://api.football-data.org/v4/competitions/${leagueCode}/standings`;
+  const standingsApiUrl = `http://api.football-data.org/v4/competitions/${leagueCode}/standings`;
+  const teamsApiUrl = `http://api.football-data.org/v4/competitions/${leagueCode}/teams`;
   const apiKey = process.env.FB_API_KEY;
 
   try {
@@ -11,7 +12,8 @@ module.exports = async function getStandings(request, response) {
       'X-Auth-Token': apiKey,
     };
 
-    const standingsResponse = await axios.get(apiUrl, { headers });
+    // Fetch standings
+    const standingsResponse = await axios.get(standingsApiUrl, { headers });
     const standingsData = standingsResponse.data.standings;
     
     console.log('API Response:', standingsData);
@@ -21,10 +23,19 @@ module.exports = async function getStandings(request, response) {
 
     console.log('Processed Team Standings:', teamStandings);
 
-    // Save the results to MongoDB
-    const savedResult = await saveResultsToMongoDB(teamStandings);
+    // Fetch teams
+    const teamsResponse = await axios.get(teamsApiUrl, { headers });
+    const teamsData = teamsResponse.data.teams;
 
-    response.status(200).json(teamStandings);
+    console.log('Teams API Response:', teamsData);
+
+     // Extract teamIds from teamsData
+     const teamIds = teamsData.map((team) => team.id);
+
+    // Save the results to MongoDB
+    // const savedResult = await saveResultsToMongoDB(teamStandings);
+    console.log(teamIds);
+    response.status(200).json({ teamIds, teamStandings });
   } catch (error) {
     console.error('Error:', error.message);
     response.status(500).json({ error: 'Internal Server Error' });
