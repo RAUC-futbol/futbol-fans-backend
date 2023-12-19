@@ -18,8 +18,24 @@ async function getTeamMatches(request, response) {
     const results = new Results(resultsData);
     const matches = matchesData.map((matchData) => new Match(matchData));
 
-    response.status(200).json({results, matches});
+    const pastMatches = matches.filter((match) => match.match.status === 'FINISHED');
+    const futureMatches = matches.filter((match) => match.match.status === 'SCHEDULED');
+    const activeMatches = matches.filter((match) =>
+      match.match.status === 'LIVE' ||
+      match.match.status === 'IN_PLAY' ||
+      match.match.status === 'PAUSED'
+    );
 
+    response.status(200).json(
+      {
+        results: results,
+        matches: {
+          past: pastMatches,
+          future: futureMatches,
+          active: activeMatches
+        }
+      }
+    );
 
   } catch (error) {
     console.error(error.message);
@@ -88,12 +104,3 @@ class Results {
 }
 
 module.exports = { getTeamMatches };
-
-// {
-//   results: {},
-//   matches: {
-//     past: [],
-//     scheduled: [],
-//     live: []
-//   }
-// }
