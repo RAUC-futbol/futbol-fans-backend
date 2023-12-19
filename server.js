@@ -27,7 +27,6 @@ app.use(express.json());
 // routes
 app.get('/standings/:leagueCode', getStandings);
 app.get('/teams', getTeams);
-// matches routes
 app.get('/team-matches/:teamId', getTeamMatches);
 
 app.use((error, request, response, next) => {
