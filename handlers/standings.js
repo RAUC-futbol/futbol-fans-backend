@@ -41,7 +41,7 @@ module.exports = async function getStandings(request, response) {
     console.log(teamInstances);
 
     // Save the results to MongoDB
-    // const savedResult = await saveResultsToMongoDB(teamStandings);
+    const savedResult = await saveResultsToMongoDB(teamIds, teamInstances, teamStandings);
 
     response.status(200).json({ teamIds, teamInstances, teamStandings });
   } catch (error) {
@@ -96,7 +96,7 @@ class TeamStanding {
 }
 
 // Function to save results to MongoDB
-async function saveResultsToMongoDB(teamStandings) {
+async function saveResultsToMongoDB(teamIds, teamInstances, teamStandings) {
   const leagueCode = teamStandings[0]?.league?.code; // Assuming the league code is the same for all standings
 
   if (!leagueCode) {
@@ -106,10 +106,15 @@ async function saveResultsToMongoDB(teamStandings) {
 
   try {
     const leagueDocument = {
-      league: { code: leagueCode },
-      standings: teamStandings
-        .map((teamStanding) => teamStanding.standings)
-        .flat(),
+      league: leagueCode,
+      teamIds: teamIds,
+      teamInstances: teamInstances,
+      teamStandings: teamStandings.map((teamStanding) => {
+        return {
+          league: { code: leagueCode },
+          standings: teamStanding.standings,
+        };
+      }),
     };
 
     const resultModel = new LeagueStandingsModel(leagueDocument);

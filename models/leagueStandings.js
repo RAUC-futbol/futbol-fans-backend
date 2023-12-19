@@ -3,6 +3,7 @@ const { Schema } = mongoose;
 
 // Define a Mongoose schema for league standings
 const leagueStandingsSchema = new Schema({
+  league: { type: String, default: ''},
   teamIds: [{ type: Number }],
   teamInstances: [
     {
