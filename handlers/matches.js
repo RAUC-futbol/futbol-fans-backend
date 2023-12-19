@@ -14,9 +14,11 @@ async function getTeamMatches(request, response) {
     const axiosResponse = await axios.get(apiUrl, { headers });
     const resultsData = axiosResponse.data.resultSet;
     const matchesData = axiosResponse.data.matches;
+
+    const results = new Results(resultsData);
     const matches = matchesData.map((matchData) => new Match(matchData));
 
-    response.status(200).json(matches);
+    response.status(200).json({results, matches});
 
 
   } catch (error) {
@@ -24,7 +26,7 @@ async function getTeamMatches(request, response) {
   }
 }
 
-// Class for matches
+// Classes
 class Match {
   constructor(matchData) {
     // match
@@ -69,6 +71,19 @@ class Match {
       startDate: matchData.season.startDate,
       endDate: matchData.season.endDate
     };
+  }
+}
+
+class Results {
+  constructor(resultsData) {
+    this.totalMatches = resultsData.count;
+    this.playedMatches = resultsData.played;
+    this.futureMatches = resultsData.count - resultsData.played;
+    this.firstMatch = resultsData.first;
+    this.lastMatch = resultsData.last;
+    this.wins = resultsData.wins;
+    this.losses = resultsData.losses;
+    this.draws = resultsData.played - (resultsData.wins + resultsData.losses);
   }
 }
 
