@@ -1,5 +1,6 @@
 const axios = require('axios');
 const leagues = require('../config/league-codes');
+const TeamInfo = require('./teamInfoClass');
 
 module.exports = async function getTeams(request, response) {
   const apiUrl = 'https://api.football-data.org/v4/teams';
@@ -45,38 +46,3 @@ module.exports = async function getTeams(request, response) {
   }
 };
 
-// class
-class TeamInfo {
-  constructor(teamData) {
-    try {
-      this.id = teamData.id;
-      this.name = teamData.name;
-      this.crest = teamData.crest;
-      this.tla = teamData.tla;
-      this.founded = teamData.founded;
-      this.address = teamData.address;
-      this.runningCompetitions = teamData.runningCompetitions.map(
-        (competition) => {
-          return {
-            id: competition.id,
-            name: competition.name,
-            code: competition.code,
-            type: competition.type,
-            emblem: competition.emblem,
-          };
-        }
-      );
-      this.coachName = `${teamData.coach.firstName} ${teamData.coach.lastName}`;
-      this.squad = teamData.squad.map((player) => {
-        return {
-          id: player.id,
-          name: player.name,
-          position: player.position,
-          nationality: player.nationality,
-        };
-      });
-    } catch (error) {
-      console.error('Error in TeamInfo constructor: ', error.message);
-    }
-  }
-}

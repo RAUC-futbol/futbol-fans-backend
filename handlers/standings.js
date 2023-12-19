@@ -1,5 +1,6 @@
 const axios = require('axios');
 const LeagueStandingsModel = require('../models/leagueStandings');
+const TeamInfo = require('./teamInfoClass');
 
 module.exports = async function getStandings(request, response) {
   const leagueCode = request.params.leagueCode.toUpperCase();
@@ -15,11 +16,13 @@ module.exports = async function getStandings(request, response) {
     // Fetch standings
     const standingsResponse = await axios.get(standingsApiUrl, { headers });
     const standingsData = standingsResponse.data.standings;
-    
+
     console.log('API Response:', standingsData);
 
     // Map the standings data to TeamStanding instances
-    const teamStandings = standingsData.map((teamData) => new TeamStanding(teamData, leagueCode));
+    const teamStandings = standingsData.map(
+      (teamData) => new TeamStanding(teamData, leagueCode)
+    );
 
     console.log('Processed Team Standings:', teamStandings);
 
@@ -29,35 +32,42 @@ module.exports = async function getStandings(request, response) {
 
     console.log('Teams API Response:', teamsData);
 
-     // Extract teamIds from teamsData
-     const teamIds = teamsData.map((team) => team.id);
+    // Extract teamIds from teamsData
+    const teamIds = teamsData.map((team) => team.id);
+    console.log(teamIds);
+
+    // Map team data
+    const teamInstances = teamsData.map((team) => new TeamInfo(team));
+    console.log(teamInstances);
 
     // Save the results to MongoDB
     // const savedResult = await saveResultsToMongoDB(teamStandings);
-    console.log(teamIds);
-    response.status(200).json({ teamIds, teamStandings });
+
+    response.status(200).json({ teamIds, teamInstances, teamStandings });
   } catch (error) {
     console.error('Error:', error.message);
     response.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
-
 // class
 class TeamStanding {
   constructor(teamData, leagueCode) {
     try {
-      console.log('Raw data:', teamData);
+      // console.log('Raw data:', teamData);
       this.league = { code: leagueCode };
       this.standings = [];
 
-      const standings = teamData.table || (teamData.standings && teamData.standings[0]?.table);
+      const standings =
+        teamData.table || (teamData.standings && teamData.standings[0]?.table);
 
       if (standings && standings.length > 0) {
         this.standings = standings.map((standing) => {
-          const teamInfo = standing.team || (standing.team[0] && standing.team[0].team);
+          const teamInfo =
+            standing.team || (standing.team[0] && standing.team[0].team);
 
-          const teamId = teamInfo?.id || (teamInfo.team && teamInfo.team.id) || 0;
+          const teamId =
+            teamInfo?.id || (teamInfo.team && teamInfo.team.id) || 0;
           const crest = `https://crests.football-data.org/${teamId}.png`;
 
           return {
@@ -85,7 +95,6 @@ class TeamStanding {
   }
 }
 
-
 // Function to save results to MongoDB
 async function saveResultsToMongoDB(teamStandings) {
   const leagueCode = teamStandings[0]?.league?.code; // Assuming the league code is the same for all standings
@@ -98,7 +107,9 @@ async function saveResultsToMongoDB(teamStandings) {
   try {
     const leagueDocument = {
       league: { code: leagueCode },
-      standings: teamStandings.map((teamStanding) => teamStanding.standings).flat(),
+      standings: teamStandings
+        .map((teamStanding) => teamStanding.standings)
+        .flat(),
     };
 
     const resultModel = new LeagueStandingsModel(leagueDocument);
@@ -110,6 +121,3 @@ async function saveResultsToMongoDB(teamStandings) {
     throw error;
   }
 }
-
-
-  
