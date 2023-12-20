@@ -1,5 +1,8 @@
+// express
 const express = require('express');
 const router = express.Router();
+// database
+const userModel = require('../models/user');
 
 let userTest;
 
@@ -19,7 +22,6 @@ async function getUser(request, response) {
   } else {
     response.status(400).send('User Not Found');
   }
-
 }
 
 async function createUser(request, response) {
