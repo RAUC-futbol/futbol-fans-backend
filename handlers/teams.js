@@ -1,9 +1,10 @@
 const axios = require('axios');
-// const LeagueStandingsModel = require('../models/leagueStandings');
+const leagues = require('../config/league-codes');
+const TeamInfo = require('./teamInfoClass');
+const TeamModel = require('../models/teamSchema');
 
 module.exports = async function getTeams(request, response) {
-  const teamId = request.params.teamId;
-  const apiUrl = `https://api.football-data.org/v4/teams`;
+  const apiUrl = 'https://api.football-data.org/v4/teams';
   const apiKey = process.env.FB_API_KEY;
 
   try {
@@ -11,20 +12,44 @@ module.exports = async function getTeams(request, response) {
       'X-Auth-Token': apiKey,
     };
 
-    const teamsResponse = await axios.get(apiUrl, { headers });
-    const standingsData = teamsResponse.data;
+    // Extract additional query parameters
+    const { competitions } = request.query;
 
-    console.log('API Response:', standingsData);
+    // Build dynamic filters
+    const filters = [];
 
-    // Map the standings data to TeamStanding instances
-    // const teamStandings = standingsData.map((teamData) => new TeamStanding(teamData, teamId));
+    if (competitions) {
+      const validCompetitionIds = competitions
+        .split(',')
+        .filter((compId) => leagues[compId]);
+      if (validCompetitionIds.length > 0) {
+        filters.push(`competitions=${validCompetitionIds.join(',')}`);
+      }
+    }
 
-    // console.log('Processed Team Standings:', teamStandings);
+    // Construct the URL based on whether a teamId is provided or not
+    const url = request.params.teamId
+      ? `${apiUrl}/${request.params.teamId}?${filters.join('&')}`
+      : `${apiUrl}?${filters.join('&')}`;
 
-    // // Save the results to MongoDB
-    // const savedResult = await saveResultsToMongoDB(teamStandings);
+    // Log the constructed URL
+    console.log('Request URL:', url);
 
-    // response.status(200).json(teamStandings);
+    const teamsResponse = await axios.get(url, { headers });
+    const teamData = teamsResponse.data;
+
+    // Create an instance of TeamModel and save to MongoDB
+    const teamModel = new TeamModel(teamData);
+    const savedTeam = await teamModel.save();
+    console.log('Saved to MongoDB:', savedTeam);
+
+    // If a teamId is provided, create an instance of TeamInfo using the provided teamData and teamId
+    const teamInfo = request.params.teamId
+      ? new TeamInfo(teamData, request.params.teamId)
+      : teamData;
+
+    // Send the structured team information in the response
+    response.status(200).json(teamInfo);
   } catch (error) {
     console.error('Error:', error.message);
     response.status(500).json({ error: 'Internal Server Error' });
