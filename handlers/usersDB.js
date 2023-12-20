@@ -12,7 +12,7 @@ router.put('/:userId', updateUser);
 router.delete('/:userId', deleteUser);
 
 // handlers
-async function getAllUsers (request, response) {
+async function getAllUsers(request, response) {
   try {
 
     const users = await userModel.find();
@@ -44,12 +44,19 @@ async function getUser(request, response) {
 
 async function createUser(request, response) {
   const userToCreate = request.body;
+  const username = request.body.username;
 
   try {
 
-    const newUser = await userModel.create(userToCreate);
+    const usernameQuery = await userModel.find({ username: username });
 
-    response.status(201).json(newUser);
+    if (usernameQuery.length) {
+      response.status(400).send('Username unavailable');
+    } else {
+      const newUser = await userModel.create(userToCreate);
+
+      response.status(201).json(newUser);
+    }
 
   } catch (error) {
     console.error(error.message);
