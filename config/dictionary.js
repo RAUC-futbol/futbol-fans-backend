@@ -18,7 +18,7 @@ module.exports = async function getTeamsDictionary(request, response) {
     }));
 
     // Log or send the dictionary as a response
-    console.log('Dictionary:', dictionary);
+    // console.log('Dictionary:', dictionary);
     response.status(200).send(dictionary);
   } catch (error) {
     console.error(error);

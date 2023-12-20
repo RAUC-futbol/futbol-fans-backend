@@ -25,6 +25,6 @@ const leagues = leagueData.slice(1).reduce((obj, row) => {
   return obj;
 }, {});
 
-console.log(leagues);
+// console.log(leagues);
 
 module.exports = leagues;
