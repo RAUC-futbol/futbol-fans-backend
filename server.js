@@ -6,9 +6,10 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 // const getStandings = require('./handlers/standings');
 const getStandingsDB = require('./handlers/getStandingsDB');
-const getTeams = require('./handlers/teams');
+const getTeamsDB = require('./handlers/getTeamsDB');
 const { getTeamMatches, getCompetitionMatches } = require('./handlers/matches');
 const getTeamstandings = require('./handlers/getTeamstandings');
+const teamInfoRouter = require('./handlers/getTeamInfo');
 
 const PORT = process.env.PORT || 3001;
 
@@ -28,10 +29,11 @@ app.use(express.json());
 
 // routes
 app.get('/standings/:leagueCode', getStandingsDB);
-app.get('/standings/team/:teamName', getTeamstandings);
-app.get('/teams/:teamId?', getTeams);
+app.get('/standings/team/:leagueCode/:teamName', getTeamstandings);
+app.get('/teams/:teamId?', getTeamsDB);
 app.get('/matches/team/:teamId', getTeamMatches);
 app.get('/matches/competition/:competitionId', getCompetitionMatches);
+app.use('/api/team-info', teamInfoRouter);
 
 app.use((error, request, response, next) => {
   console.error(error);

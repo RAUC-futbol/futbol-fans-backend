@@ -41,7 +41,7 @@ const leagueStandingsSchema = new Schema({
       standings: [
         {
           position: { type: Number, default: 0 },
-          id: { type: Number, default: 0 },
+          id: { type: Number, default: 0, unique: true },
           name: { type: String, default: '' },
           tla: { type: String, default: '' },
           crest: { type: String, default: '' },

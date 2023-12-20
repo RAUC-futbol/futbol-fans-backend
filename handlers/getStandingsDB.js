@@ -5,7 +5,7 @@ module.exports = async function getStandingsDB(request, response) {
     console.log('Handling /standings request');
 
     const standings = await LeagueStandingsModel.find();
-    console.log('DB data: ', standings);
+    // console.log('DB data: ', standings);
 
     response.status(200).send(standings);
   } catch (error) {
