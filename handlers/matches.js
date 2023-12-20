@@ -7,17 +7,33 @@ const headers = {
 
 async function getTeamMatches(request, response) {
   const teamId = request.params.teamId;
-  const apiUrl = `https://api.football-data.org/v4/teams/${teamId}/matches`;
+  let apiUrl = `https://api.football-data.org/v4/teams/${teamId}/matches?`;
+
+  // filter matches by season, competition, or date range
+  const query = request.query;
+  if (query.season) { // expects year 'YYYY'
+    apiUrl = `${apiUrl}&season=${query.season}`;
+  }
+  if (query.competition) { // expects competition id
+    apiUrl = `${apiUrl}&competitions=${query.competition}`;
+  }
+  if (query.dateFrom) { // expects date 'YYYY-MM-DD'
+    apiUrl = `${apiUrl}&dateFrom=${query.dateFrom}`;
+  }
+  if (query.dateTo) { // expects date 'YYYY-MM-DD'
+    apiUrl = `${apiUrl}&dateTo=${query.dateTo}`;
+  }
 
   try {
 
+    // raw response from football-data.org API
     const axiosResponse = await axios.get(apiUrl, { headers });
     const resultsData = axiosResponse.data.resultSet;
     const matchesData = axiosResponse.data.matches;
-
+    // shape matches data with classes
     const results = new Results(resultsData);
     const matches = matchesData.map((matchData) => new Match(matchData));
-
+    // sort matches by past, future, and current
     const pastMatches = matches.filter((match) => match.match.status === 'FINISHED');
     const futureMatches = matches.filter((match) => match.match.status === 'SCHEDULED');
     const activeMatches = matches.filter((match) =>
@@ -26,6 +42,7 @@ async function getTeamMatches(request, response) {
       match.match.status === 'PAUSED'
     );
 
+    // response with results totals and sorted matches
     response.status(200).json(
       {
         results: results,
