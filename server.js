@@ -6,7 +6,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const getStandings = require('./handlers/standings');
 const getTeams = require('./handlers/teams');
-const { getTeamMatches } = require('./handlers/matches');
+const { getTeamMatches, getCompetitionMatches } = require('./handlers/matches');
 
 const PORT = process.env.PORT || 3001;
 
@@ -27,7 +27,8 @@ app.use(express.json());
 // routes
 app.get('/standings/:leagueCode', getStandings);
 app.get('/teams', getTeams);
-app.get('/team-matches/:teamId', getTeamMatches);
+app.get('/matches/team/:teamId', getTeamMatches);
+app.get('/matches/competition/:competitionId', getCompetitionMatches);
 
 app.use((error, request, response, next) => {
   console.error(error);
