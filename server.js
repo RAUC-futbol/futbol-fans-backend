@@ -11,6 +11,8 @@ const { getTeamMatches, getCompetitionMatches } = require('./handlers/matches');
 const getTeamstandings = require('./handlers/getTeamstandings');
 const teamInfoRouter = require('./handlers/getTeamInfo');
 const usersRouter = require('./handlers/usersDB');
+const getTeamsDictionary = require('./config/dictionary');
+
 
 const PORT = process.env.PORT || 3001;
 
@@ -36,6 +38,8 @@ app.get('/matches/team/:teamId', getTeamMatches);
 app.get('/matches/competition/:competitionId', getCompetitionMatches);
 app.use('/api/team-info', teamInfoRouter);
 app.use('/users', usersRouter);
+app.get('/dictionary', getTeamsDictionary);
+
 
 app.use((error, request, response, next) => {
   console.error(error);
