@@ -7,27 +7,21 @@ const headers = {
 
 async function getTeamMatches(request, response) {
   const teamId = request.params.teamId;
-  let apiUrl = `https://api.football-data.org/v4/teams/${teamId}/matches?`;
+  let apiUrl = `https://api.football-data.org/v4/teams/${teamId}/matches`;
 
   // filter matches by season, competition, or date range
   const query = request.query;
-  if (query.season) { // expects year 'YYYY'
-    apiUrl = `${apiUrl}&season=${query.season}`;
-  }
-  if (query.competition) { // expects competition id
-    apiUrl = `${apiUrl}&competitions=${query.competition}`;
-  }
-  if (query.dateFrom) { // expects date 'YYYY-MM-DD'
-    apiUrl = `${apiUrl}&dateFrom=${query.dateFrom}`;
-  }
-  if (query.dateTo) { // expects date 'YYYY-MM-DD'
-    apiUrl = `${apiUrl}&dateTo=${query.dateTo}`;
-  }
+  const params = {
+    season: query.season, // expects year 'YYYY'
+    competitions: query.competition, // expects competition id
+    dateFrom: query.dateFrom, // expects date 'YYYY-MM-DD'
+    dateTo: query.dateTo // expects date 'YYYY-MM-DD'
+  };
 
   try {
 
     // raw response from football-data.org API
-    const axiosResponse = await axios.get(apiUrl, { headers });
+    const axiosResponse = await axios.get(apiUrl, { headers, params });
     const resultsData = axiosResponse.data.resultSet;
     const matchesData = axiosResponse.data.matches;
     // shape matches data with classes
@@ -61,27 +55,21 @@ async function getTeamMatches(request, response) {
 
 async function getCompetitionMatches(request, response) {
   const competitionId = request.params.competitionId;
-  let apiUrl = `https://api.football-data.org/v4/competitions/${competitionId}/matches?`;
+  let apiUrl = `https://api.football-data.org/v4/competitions/${competitionId}/matches`;
 
-  // filter matches by season, competition, or date range
+  // filter matches by season, matchday, or date range
   const query = request.query;
-  if (query.season) { // expects year 'YYYY'
-    apiUrl = `${apiUrl}&season=${query.season}`;
-  }
-  if (query.matchday) { // expects matchday integer
-    apiUrl = `${apiUrl}&matchday=${query.matchday}`;
-  }
-  if (query.dateFrom) { // expects date 'YYYY-MM-DD'
-    apiUrl = `${apiUrl}&dateFrom=${query.dateFrom}`;
-  }
-  if (query.dateTo) { // expects date 'YYYY-MM-DD'
-    apiUrl = `${apiUrl}&dateTo=${query.dateTo}`;
-  }
+  const params = {
+    season: query.season, // expects year 'YYYY'
+    matchday: query.matchday, // expects matchday integer
+    dateFrom: query.dateFrom, // expects date 'YYYY-MM-DD'
+    dateTo: query.dateTo // expects date 'YYYY-MM-DD'
+  };
 
   try {
 
     // raw response from football-data.org API
-    const axiosResponse = await axios.get(apiUrl, { headers });
+    const axiosResponse = await axios.get(apiUrl, { headers, params });
     const resultsData = axiosResponse.data.resultSet;
     const matchesData = axiosResponse.data.matches;
     // shape matches data with classes
