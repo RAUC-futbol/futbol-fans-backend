@@ -8,7 +8,7 @@ const userModel = require('../models/user');
 router.get('/all', getAllUsers);
 router.get('/:username', getUser);
 router.post('/', createUser);
-// router.put('/:userId', updateUser);
+router.put('/:userId', updateUser);
 router.delete('/:userId', deleteUser);
 
 // handlers
@@ -50,6 +50,22 @@ async function createUser(request, response) {
     const newUser = await userModel.create(userToCreate);
 
     response.status(201).json(newUser);
+
+  } catch (error) {
+    console.error(error.message);
+  }
+}
+
+async function updateUser(request, response) {
+  const userId = request.params.userId;
+  const userWithUpdates = request.body;
+
+  try {
+
+    await userModel.findByIdAndUpdate(userId, userWithUpdates);
+    const updatedUser = await userModel.findById(userId);
+
+    response.status(200).json(updatedUser);
 
   } catch (error) {
     console.error(error.message);
