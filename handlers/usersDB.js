@@ -9,7 +9,7 @@ router.get('/all', getAllUsers);
 router.get('/:username', getUser);
 router.post('/', createUser);
 // router.put('/:userId', updateUser);
-// router.delete('/:userId', deleteUser);
+router.delete('/:userId', deleteUser);
 
 // handlers
 async function getAllUsers (request, response) {
@@ -50,6 +50,20 @@ async function createUser(request, response) {
     const newUser = await userModel.create(userToCreate);
 
     response.status(201).json(newUser);
+
+  } catch (error) {
+    console.error(error.message);
+  }
+}
+
+async function deleteUser(request, response) {
+  const userId = request.params.userId;
+
+  try {
+
+    await userModel.findByIdAndDelete(userId);
+
+    response.status(204).send('User Deleted');
 
   } catch (error) {
     console.error(error.message);
