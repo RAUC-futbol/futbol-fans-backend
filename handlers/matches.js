@@ -31,7 +31,61 @@ async function getTeamMatches(request, response) {
     const resultsData = axiosResponse.data.resultSet;
     const matchesData = axiosResponse.data.matches;
     // shape matches data with classes
-    const results = new Results(resultsData);
+    const results = new TeamResults(resultsData);
+    const matches = matchesData.map((matchData) => new Match(matchData));
+    // sort matches by past, future, and current
+    const pastMatches = matches.filter((match) => match.match.status === 'FINISHED');
+    const futureMatches = matches.filter((match) => match.match.status === 'SCHEDULED');
+    const activeMatches = matches.filter((match) =>
+      match.match.status === 'LIVE' ||
+      match.match.status === 'IN_PLAY' ||
+      match.match.status === 'PAUSED'
+    );
+
+    // response with results totals and sorted matches
+    response.status(200).json(
+      {
+        results: results,
+        matches: {
+          past: pastMatches,
+          future: futureMatches,
+          active: activeMatches
+        }
+      }
+    );
+
+  } catch (error) {
+    console.error(error.message);
+  }
+}
+
+async function getCompetitionMatches(request, response) {
+  const competitionId = request.params.competitionId;
+  let apiUrl = `https://api.football-data.org/v4/competitions/${competitionId}/matches?`;
+
+  // filter matches by season, competition, or date range
+  const query = request.query;
+  if (query.season) { // expects year 'YYYY'
+    apiUrl = `${apiUrl}&season=${query.season}`;
+  }
+  if (query.matchday) { // expects matchday integer
+    apiUrl = `${apiUrl}&matchday=${query.matchday}`;
+  }
+  if (query.dateFrom) { // expects date 'YYYY-MM-DD'
+    apiUrl = `${apiUrl}&dateFrom=${query.dateFrom}`;
+  }
+  if (query.dateTo) { // expects date 'YYYY-MM-DD'
+    apiUrl = `${apiUrl}&dateTo=${query.dateTo}`;
+  }
+
+  try {
+
+    // raw response from football-data.org API
+    const axiosResponse = await axios.get(apiUrl, { headers });
+    const resultsData = axiosResponse.data.resultSet;
+    const matchesData = axiosResponse.data.matches;
+    // shape matches data with classes
+    const results = new CompetitionResults(resultsData);
     const matches = matchesData.map((matchData) => new Match(matchData));
     // sort matches by past, future, and current
     const pastMatches = matches.filter((match) => match.match.status === 'FINISHED');
@@ -107,7 +161,7 @@ class Match {
   }
 }
 
-class Results {
+class TeamResults {
   constructor(resultsData) {
     this.totalMatches = resultsData.count;
     this.playedMatches = resultsData.played;
@@ -120,4 +174,13 @@ class Results {
   }
 }
 
-module.exports = { getTeamMatches };
+class CompetitionResults {
+  constructor(resultsData) {
+    this.totalMatches = resultsData.count;
+    this.playedMatches = resultsData.played;
+    this.firstMatch = resultsData.first;
+    this.lastMatch = resultsData.last;
+  }
+}
+
+module.exports = { getTeamMatches, getCompetitionMatches };
