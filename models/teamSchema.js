@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const teamSchema = new Schema({
-  id: { type: Number },
+  id: { type: Number, default: 0, unique: true },
   name: { type: String, default: '' },
   crest: { type: String, default: '' },
   tla: { type: String, default: '' },

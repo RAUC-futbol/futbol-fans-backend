@@ -19,7 +19,7 @@ class TeamInfo {
           };
         }
       );
-      this.coachName = teamData.coach.name;
+      this.coach = { name: teamData.coach.name || null },
       this.squad = teamData.squad.map((player) => {
         return {
           id: player.id,
