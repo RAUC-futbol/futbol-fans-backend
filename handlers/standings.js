@@ -1,9 +1,11 @@
 const axios = require('axios');
 const LeagueStandingsModel = require('../models/leagueStandings');
+const TeamInfo = require('./teamInfoClass');
 
 module.exports = async function getStandings(request, response) {
   const leagueCode = request.params.leagueCode.toUpperCase();
-  const apiUrl = `http://api.football-data.org/v4/competitions/${leagueCode}/standings`;
+  const standingsApiUrl = `http://api.football-data.org/v4/competitions/${leagueCode}/standings`;
+  const teamsApiUrl = `http://api.football-data.org/v4/competitions/${leagueCode}/teams`;
   const apiKey = process.env.FB_API_KEY;
 
   try {
@@ -11,42 +13,61 @@ module.exports = async function getStandings(request, response) {
       'X-Auth-Token': apiKey,
     };
 
-    const standingsResponse = await axios.get(apiUrl, { headers });
+    // Fetch standings
+    const standingsResponse = await axios.get(standingsApiUrl, { headers });
     const standingsData = standingsResponse.data.standings;
-    
+
     console.log('API Response:', standingsData);
 
     // Map the standings data to TeamStanding instances
-    const teamStandings = standingsData.map((teamData) => new TeamStanding(teamData, leagueCode));
+    const teamStandings = standingsData.map(
+      (teamData) => new TeamStanding(teamData, leagueCode)
+    );
 
     console.log('Processed Team Standings:', teamStandings);
 
-    // Save the results to MongoDB
-    const savedResult = await saveResultsToMongoDB(teamStandings);
+    // Fetch teams
+    const teamsResponse = await axios.get(teamsApiUrl, { headers });
+    const teamsData = teamsResponse.data.teams;
 
-    response.status(200).json(teamStandings);
+    console.log('Teams API Response:', teamsData);
+
+    // Extract teamIds from teamsData
+    const teamIds = teamsData.map((team) => team.id);
+    console.log(teamIds);
+
+    // Map team data
+    const teamInstances = teamsData.map((team) => new TeamInfo(team));
+    console.log(teamInstances);
+
+    // Save the results to MongoDB
+    const savedResult = await saveResultsToMongoDB(teamIds, teamInstances, teamStandings);
+
+    response.status(200).json({ teamIds, teamInstances, teamStandings });
   } catch (error) {
     console.error('Error:', error.message);
     response.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
-
 // class
 class TeamStanding {
   constructor(teamData, leagueCode) {
     try {
-      console.log('Raw data:', teamData);
+      // console.log('Raw data:', teamData);
       this.league = { code: leagueCode };
       this.standings = [];
 
-      const standings = teamData.table || (teamData.standings && teamData.standings[0]?.table);
+      const standings =
+        teamData.table || (teamData.standings && teamData.standings[0]?.table);
 
       if (standings && standings.length > 0) {
         this.standings = standings.map((standing) => {
-          const teamInfo = standing.team || (standing.team[0] && standing.team[0].team);
+          const teamInfo =
+            standing.team || (standing.team[0] && standing.team[0].team);
 
-          const teamId = teamInfo?.id || (teamInfo.team && teamInfo.team.id) || 0;
+          const teamId =
+            teamInfo?.id || (teamInfo.team && teamInfo.team.id) || 0;
           const crest = `https://crests.football-data.org/${teamId}.png`;
 
           return {
@@ -74,9 +95,8 @@ class TeamStanding {
   }
 }
 
-
 // Function to save results to MongoDB
-async function saveResultsToMongoDB(teamStandings) {
+async function saveResultsToMongoDB(teamIds, teamInstances, teamStandings) {
   const leagueCode = teamStandings[0]?.league?.code; // Assuming the league code is the same for all standings
 
   if (!leagueCode) {
@@ -86,8 +106,15 @@ async function saveResultsToMongoDB(teamStandings) {
 
   try {
     const leagueDocument = {
-      league: { code: leagueCode },
-      standings: teamStandings.map((teamStanding) => teamStanding.standings).flat(),
+      league: leagueCode,
+      teamIds: teamIds,
+      teamInstances: teamInstances,
+      teamStandings: teamStandings.map((teamStanding) => {
+        return {
+          league: { code: leagueCode },
+          standings: teamStanding.standings,
+        };
+      }),
     };
 
     const resultModel = new LeagueStandingsModel(leagueDocument);
@@ -99,6 +126,3 @@ async function saveResultsToMongoDB(teamStandings) {
     throw error;
   }
 }
-
-
-  
