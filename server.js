@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 // const getStandings = require('./handlers/standings');
 const getStandingsDB = require('./handlers/getStandingsDB');
 const getTeams = require('./handlers/teams');
+const getTeamstandings = require('./handlers/getTeamstandings');
 
 const PORT = process.env.PORT || 3001;
 
@@ -26,6 +27,7 @@ app.use(express.json());
 
 // routes
 app.get('/standings/:leagueCode', getStandingsDB);
+app.get('/standings/team/:teamName', getTeamstandings);
 app.get('/teams/:teamId?', getTeams);
 
 
