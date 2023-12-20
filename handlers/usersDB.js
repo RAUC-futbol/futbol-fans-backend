@@ -4,30 +4,56 @@ const router = express.Router();
 // database
 const userModel = require('../models/user');
 
-let userTest;
-
 // routes
-// router.get('/all', getAllUsers);
-router.get('/:userId', getUser);
+router.get('/all', getAllUsers);
+router.get('/:username', getUser);
 router.post('/', createUser);
 // router.put('/:userId', updateUser);
 // router.delete('/:userId', deleteUser);
 
 // handlers
-async function getUser(request, response) {
-  const userId = request.params.userId;
+async function getAllUsers (request, response) {
+  try {
 
-  if (userId === userTest.username) {
-    response.status(200).json(userTest);
-  } else {
-    response.status(400).send('User Not Found');
+    const users = await userModel.find();
+
+    response.status(200).json(users);
+
+  } catch (error) {
+    console.error(error.message);
+  }
+}
+
+async function getUser(request, response) {
+  const username = request.params.username;
+
+  try {
+
+    const user = await userModel.find({ username: username });
+
+    if (user.length) {
+      response.status(200).json(user);
+    } else {
+      response.status(404).send('User Not Found');
+    }
+
+  } catch (error) {
+    console.error(error.message);
   }
 }
 
 async function createUser(request, response) {
-  const user = request.body;
-  userTest = user;
-  response.status(201).json(userTest);
+  const userToCreate = request.body;
+
+  try {
+
+    const newUser = await userModel.create(userToCreate);
+
+    response.status(201).json(newUser);
+
+  } catch (error) {
+    console.error(error.message);
+  }
 }
 
 module.exports = router;
