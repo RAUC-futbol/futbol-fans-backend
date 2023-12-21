@@ -4,7 +4,11 @@ module.exports = async function getTeamsDB(request, response) {
   try {
     console.log('Handling /teams request');
 
-    const teams = await TeamModel.find();
+    const teamId = request.params.teamId;
+
+    const query = {id:teamId};
+
+    const teams = await TeamModel.find(query);
     // console.log('DB data: ', teams);
 
     response.status(200).send(teams);
