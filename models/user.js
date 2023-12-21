@@ -3,7 +3,10 @@ const { Schema } = mongoose;
 
 const userSchema = new Schema(
   {
-    username: { type: String, default: '', unique: true }
+    username: { type: String, default: '', unique: true },
+    name: { type: String, default: '' },
+    favLeague: { type: Number, default: 2021 },
+    favTeam: { type: Number, default: 57 }
   }
 );
 
