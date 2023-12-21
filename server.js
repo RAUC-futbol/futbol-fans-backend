@@ -31,7 +31,7 @@ app.use(express.json());
 // routes
 app.get('/standings/:leagueCode', getStandingsDB);
 app.get('/standings/team/:leagueCode/:teamName', getTeamstandings);
-app.get('/teams/:teamId?', getTeamsDB);
+app.get('/teams/:teamId', getTeamsDB);
 app.get('/matches/team/:teamId', getTeamMatches);
 app.get('/matches/competition/:competitionId', getCompetitionMatches);
 app.use('/api/team-info', teamInfoRouter);
