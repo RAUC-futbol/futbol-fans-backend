@@ -7,8 +7,10 @@ module.exports = async function getHighlights(request, response) {
   try {
     const apiResponse = await axios.getAdapter(apiUrl);
     const highlightsData = apiResponse.data.tvhighlights;
-    console.log('API Response ')
+    console.log('API Response: ', highlightsData);
+    response.status()
   } catch(error){
     console.error(error.message);
+    response.status(500).json({ error: 'Internal Server Error' });
   }
 };
